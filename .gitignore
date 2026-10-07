@@ -1,3 +1,14 @@
+# Python
 __pycache__/
-.idea/
+*.pyc
+venv/
+.venv/
 
+# Secrets (keep only the template)
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
