@@ -1,0 +1,101 @@
+{
+  "info": {
+    "name": "Wedding RSVP API",
+    "description": "Run requests in order: Create stores {{registration_id}}, which Get/Update/Delete then use.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "registration_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Health check",
+      "request": { "method": "GET", "url": "{{base_url}}/" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));"
+      ] } }]
+    },
+    {
+      "name": "Create registration",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Aigerim\",\n  \"surname\": \"Sadykova\",\n  \"attending\": true,\n  \"amount_of_people\": 2\n}" },
+        "url": "{{base_url}}/registration/"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('201 Created', () => pm.response.to.have.status(201));",
+        "pm.collectionVariables.set('registration_id', pm.response.json().id);"
+      ] } }]
+    },
+    {
+      "name": "Create registration (not attending)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Daniyar\",\n  \"surname\": \"Omarov\",\n  \"attending\": false\n}" },
+        "url": "{{base_url}}/registration/"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('201 Created', () => pm.response.to.have.status(201));",
+        "pm.test('amount_of_people forced to 0', () => pm.expect(pm.response.json().amount_of_people).to.eql(0));"
+      ] } }]
+    },
+    {
+      "name": "Create registration (invalid -> 422)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test\",\n  \"surname\": \"User\",\n  \"attending\": true,\n  \"amount_of_people\": 0\n}" },
+        "url": "{{base_url}}/registration/"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+      ] } }]
+    },
+    {
+      "name": "List registrations",
+      "request": { "method": "GET", "url": "{{base_url}}/registration/" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('returns an array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+      ] } }]
+    },
+    {
+      "name": "Get registration by ID",
+      "request": { "method": "GET", "url": "{{base_url}}/registration/{{registration_id}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('id matches', () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('registration_id'))));"
+      ] } }]
+    },
+    {
+      "name": "Update registration",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Aigerim\",\n  \"surname\": \"Sadykova\",\n  \"attending\": true,\n  \"amount_of_people\": 4\n}" },
+        "url": "{{base_url}}/registration/{{registration_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('amount updated', () => pm.expect(pm.response.json().amount_of_people).to.eql(4));"
+      ] } }]
+    },
+    {
+      "name": "Delete registration",
+      "request": { "method": "DELETE", "url": "{{base_url}}/registration/{{registration_id}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+      ] } }]
+    },
+    {
+      "name": "Get deleted registration (404)",
+      "request": { "method": "GET", "url": "{{base_url}}/registration/{{registration_id}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+      ] } }]
+    }
+  ]
+}

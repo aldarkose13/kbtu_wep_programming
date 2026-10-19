@@ -42,7 +42,9 @@ Key points:
 ├── .dockerignore / .gitignore
 ├── requirements.txt
 ├── main.py                    # FastAPI app
-├── routers/registration.py    # API endpoints
+├── routers/registration.py    # API endpoints (CRUD)
+├── API.md                     # API documentation
+├── postman/                   # exported Postman collection
 ├── orm/
 │   ├── database.py            # engine, session, Base (config from env vars)
 │   └── models.py              # SQLAlchemy models
@@ -93,36 +95,34 @@ Stop with `Ctrl+C` or `docker compose down` (data is kept).
 
 ## API
 
-| Method | Path                         | Description                  | Success |
-|--------|------------------------------|------------------------------|---------|
-| GET    | `/`                          | Basic hello message          | 200     |
-| POST   | `/registration/register`     | Save an RSVP to the database | 201     |
-| GET    | `/registration/{id}`         | Read an RSVP from the database | 200   |
+Full reference: [API.md](API.md). Postman collection: [postman/Wedding_RSVP.postman_collection.json](postman/Wedding_RSVP.postman_collection.json)
+(import it in Postman and run the requests in order).
 
-Validation rules: `name` and `surname` are 1–100 characters; `amount_of_people` is
-0–10; if `attending` is `true` then `amount_of_people` must be at least 1; if
+| Method | Path                    | Description                | Success |
+|--------|-------------------------|----------------------------|---------|
+| GET    | `/`                     | Health check               | 200     |
+| GET    | `/registration/`        | List all RSVPs             | 200     |
+| GET    | `/registration/{id}`    | Get one RSVP               | 200     |
+| POST   | `/registration/`        | Create an RSVP             | 201     |
+| PUT    | `/registration/{id}`    | Update an RSVP             | 200     |
+| DELETE | `/registration/{id}`    | Delete an RSVP             | 204     |
+
+Validation rules: `name` and `surname` are 1-100 characters; `amount_of_people` is
+0-10; if `attending` is `true` then `amount_of_people` must be at least 1; if
 `attending` is `false` it is stored as 0. Unknown ids return 404.
 
-### Examples
-
 ```bash
-# Create (write to DB)
-curl -X POST http://localhost:8000/registration/register \
+curl -X POST http://localhost:8000/registration/ \
   -H "Content-Type: application/json" \
   -d '{"name": "Aigerim", "surname": "Sadykova", "attending": true, "amount_of_people": 2}'
-
-# Response (201)
-# {"id":1,"name":"Aigerim","surname":"Sadykova","attending":true,"amount_of_people":2,"created_at":"2026-10-07T14:35:10.123456"}
-
-# Read (read from DB)
-curl http://localhost:8000/registration/1
+curl http://localhost:8000/registration/
 ```
 
 ## Verifying data persistence
 
 ```bash
 docker compose up -d --build
-curl -X POST http://localhost:8000/registration/register \
+curl -X POST http://localhost:8000/registration/ \
   -H "Content-Type: application/json" \
   -d '{"name":"Test","surname":"User","attending":true,"amount_of_people":1}'
 
